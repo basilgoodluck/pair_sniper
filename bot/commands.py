@@ -6,6 +6,7 @@ from .utils import pairs
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from core.config import watch_list
+from core.data import get_crypto_data, get_forex_data
 
 async def show_pairs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     pairs_list = pairs() 
@@ -32,4 +33,3 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("Forex", callback_data='bulk_forex')]
             [InlineKeyboardButton("<< Go back", callback_data='back_start')]
         ]
-        
