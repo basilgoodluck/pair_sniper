@@ -1,7 +1,7 @@
 # import aiohttp
 # import asyncio
 # from .config import twelve_data_token
-from indicators import OBVIndicator, YahooFinanceDataProvider, RSIIndicator, MACDIndicator, RSIMACDSignalGenerator
+from .indicators import OBVIndicator, YahooFinanceDataProvider, RSIIndicator, MACDIndicator, RSIMACDSignalGenerator
 
 # async def get_forex_data(interval, symbol): 
 #     async with aiohttp.ClientSession() as session:
@@ -15,13 +15,12 @@ from indicators import OBVIndicator, YahooFinanceDataProvider, RSIIndicator, MAC
 #             data = await response.json()
 #             return data
 
-if __name__ == "__main__":
+def generate_signal(period: str, interval: str):
     provider = YahooFinanceDataProvider()
     symbol = "EURUSD=X"
-    market_data = provider.fetch_data(symbol=symbol, period="3d", interval="5m")
+    market_data = provider.fetch_data(symbol=symbol, period=period, interval=interval)
     indicators = [RSIIndicator(), MACDIndicator(), OBVIndicator()]
     signal_generator = RSIMACDSignalGenerator()
     result = signal_generator.generate_signals(market_data, indicators, symbol)
     
-    # print("\nMost recent signal:")
-    print(result)
+    return result

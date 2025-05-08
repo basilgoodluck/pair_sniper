@@ -1,12 +1,11 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-import sys
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 import os
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-from .utils import pairs
+import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from core.config import watch_list
-from core.data import get_crypto_data, get_forex_data
+from core.config import watch_list, tg_bot_token
+from core.data import generate_signal
 
 async def show_pairs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     pairs_list = pairs() 
@@ -23,13 +22,28 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Please choose an option you would like to go with.", reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query= update.callback_query
+    query = update.callback_query
     await query.answer()
     state = context.user_data.get("state", "start")
-    if query.data == "bulk_button" and state == "start":
-        context.user_data["state"] = "bulk_info"
+    if query.data == "single_button" and state == "start":
+        context.user_data["state"] = "single_info"
         keyboard = [
             [InlineKeyboardButton("Crypto", callback_data='bulk_crypto')],
-            [InlineKeyboardButton("Forex", callback_data='bulk_forex')]
-            [InlineKeyboardButton("<< Go back", callback_data='back_start')]
+            [InlineKeyboardButton("Forex", callback_data='bulk_forex')],
+            [InlineKeyboardButton("Go back", callback_data='single_button')]
         ]
+        info = generate_signal("3d", "1m")
+        await query.edit_message_text(str(info), reply_markup=InlineKeyboardMarkup(keyboard))  
+    elif query.data == "single_button" and state == "single_info":
+        context.user_data["state"] = "start"
+        keyboard = [
+            [InlineKeyboardButton("Bulk Analysis", callback_data="bulk_button")],
+            [InlineKeyboardButton("Single Analysis", callback_data="single_button")]
+        ]
+        await query.message.reply_text("Please choose an option you would like to go with.", reply_markup=InlineKeyboardMarkup(keyboard))
+        await query.message.delete()  
+if __name__ == "__main__":
+    app = ApplicationBuilder().token(tg_bot_token).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_callback))
+    app.run_polling()
