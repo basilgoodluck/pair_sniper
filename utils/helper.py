@@ -3,8 +3,8 @@ import io
 import sys
 import os
 import matplotlib.pyplot as plt
+from telegram import InlineKeyboardButton
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 
 def plot_signals(df):
     plt.figure(figsize=(12, 6))
@@ -23,4 +23,8 @@ def plot_signals(df):
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)
+    plt.close()
     return buf
+
+def generate_keyboard(options):
+    return [[InlineKeyboardButton(option, callback_data=option) for option in options]]

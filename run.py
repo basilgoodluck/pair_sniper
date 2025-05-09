@@ -1,13 +1,12 @@
-import requests
-import os
-from dotenv import load_dotenv
+from telegram.ext import ApplicationBuilder
+from core.config import tg_bot_token
+from bot.commands import register_handlers
 
-load_dotenv()
+def main():
+    """Initialize and run the Telegram bot."""
+    app = ApplicationBuilder().token(tg_bot_token).build()
+    register_handlers(app)
+    app.run_polling()
 
-API_TOKEN = os.getenv("TWELVE_DATA_TOKEN")
-
-response = requests.get(f"https://api.twelvedata.com/time_series?symbol=EUR/USD&interval=1day&apikey={API_TOKEN}")
-
-bulk = requests.get(f"https://api.exchangerate.host/latest?base=USD")
-
-print(response.json())
+if __name__ == "__main__":
+    main()
