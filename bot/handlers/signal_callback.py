@@ -5,31 +5,43 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from core.data import generate_rsi_signal, generate_macd_signal, generate_obv_signal, generate_combined_signal
 from core.signal_engine import YahooFinanceDataProvider, BinanceDataProvider, RSIIndicator, MACDIndicator, OBVIndicator, DynamicSignalGenerator
-from keyboards import get_back_keyboard, generate_keyboard 
+from keyboards import get_back_keyboard, get_period_keyboard
 from utils.helper import plot_signals
 
 async def signal_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
 
-    ticker = context.user_data.get("ticker")
+    ticker = context.user_data.get("ticker")  # e.g., stock_aapl, crypto_btc_usd
     asset_type = context.user_data.get("asset_type")
     period = context.user_data.get("period")
     interval = context.user_data.get("interval")
     signal_type = context.user_data.get("signal_type", "combined")
 
     ticker_map = {
-        "commodities": {"GOLD": "GC=F", "SILVER": "SI=F", "OIL": "CL=F", "NATGAS": "NG=F"},
-        "crypto": {"BTC/USDT": "BTC/USDT", "ETH/USDT": "ETH/USDT", "SOL/USDT": "SOL/USDT", "BNB/USDT": "BNB/USDT", "ADA/USDT": "ADA/USDT"},
-        "forex": {"EUR/USD": "EURUSD=X", "GBP/USD": "GBPUSD=X", "USD/JPY": "USDJPY=X", "AUD/USD": "AUDUSD=X", "USD/CHF": "USDCHF=X"},
-        "indices": {"SP500": "^GSPC", "NASDAQ": "^IXIC", "DOWJ": "^DJI", "FTSE": "^FTSE", "NIKKEI": "^N225"},
-        "stocks": {"AAPL": "AAPL", "TSLA": "TSLA", "GOOG": "GOOG", "MSFT": "MSFT", "AMZN": "AMZN"}
+        "commodities": {"commodity_gold": "GC=F", "commodity_silver": "SI=F", "commodity_oil": "CL=F", "commodity_natgas": "NG=F"},
+        "crypto": {"crypto_btc_usd": "BTC/USDT", "crypto_eth_usd": "ETH/USDT", "crypto_sol_usd": "SOL/USDT", "crypto_bnb_usd": "BNB/USDT", "crypto_ada_usd": "ADA/USDT"},
+        "forex": {"forex_eur_usd": "EURUSD=X", "forex_gbp_usd": "GBPUSD=X", "forex_usd_jpy": "USDJPY=X", "forex_aud_usd": "AUDUSD=X", "forex_usd_chf": "USDCHF=X"},
+        "indices": {"index_sp500": "^GSPC", "index_nasdaq": "^IXIC", "index_dowj": "^DJI", "index_ftse": "^FTSE", "index_nikkei": "^N225"},
+        "stocks": {"stock_aapl": "AAPL", "stock_tsla": "TSLA", "stock_goog": "GOOG", "stock_msft": "MSFT", "stock_amzn": "AMZN"}
     }
 
-    if query.data in ticker_map.get(asset_type, {}):
-        context.user_data["state"] = "generate_signal"
-        context.user_data["ticker"] = query.data
-        symbol = ticker_map[asset_type][query.data]
+    if query.data == "generate_signal":
+        if not all([ticker, asset_type, period, interval]):
+            await query.edit_message_text(
+                "❌ Missing required data to generate signal.",
+                reply_markup=get_back_keyboard()
+            )
+            return
+
+        symbol = ticker_map.get(asset_type, {}).get(ticker)
+        if not symbol:
+            await query.edit_message_text(
+                "❌ Invalid ticker or asset type.",
+                reply_markup=get_back_keyboard()
+            )
+            return
+
         try:
             if signal_type == "rsi":
                 signal_data = generate_rsi_signal(symbol, asset_type, period, interval)
@@ -68,7 +80,7 @@ async def signal_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             plot_buf = plot_signals(df.tail(50))
             await query.message.reply_photo(
                 photo=plot_buf,
-                caption=f"📈 Latest Signal for {query.data} ({asset_type}, {period}, {interval}):\n{signal_data['signal']}",
+                caption=f"📈 Latest Signal for {ticker} ({asset_type}, {period}, {interval}):\n{signal_data['signal']}",
                 reply_markup=get_back_keyboard()
             )
             await query.delete_message()
@@ -82,5 +94,5 @@ async def signal_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         context.user_data["state"] = "select_period"
         valid_periods = ["7d", "14d", "30d", "6mo", "1y"]
         await query.edit_message_text(
-            "🤖 Choose a period:", reply_markup=generate_keyboard(valid_periods + ["🔙 Go back"])
+            "🤖 Choose a period:", reply_markup=get_period_keyboard(valid_periods)
         )

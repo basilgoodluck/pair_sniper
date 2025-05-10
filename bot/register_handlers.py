@@ -18,10 +18,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 def register_handlers(app):
-    """Register command and callback handlers with the application."""
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(asset_type_callback, pattern="^(single_button|back_button)$"))
-    app.add_handler(CallbackQueryHandler(ticker_callback, pattern="^(commodities|crypto|forex|indices|stocks|back_button)$"))
-    app.add_handler(CallbackQueryHandler(interval_callback, pattern="^(1d|1h|30m|15m|5m|1m|back_button)$"))
-    app.add_handler(CallbackQueryHandler(period_callback, pattern="^(7d|14d|30d|6mo|1y|back_button)$"))
-    app.add_handler(CallbackQueryHandler(signal_callback, pattern="^(AAPL|TSLA|GOOG|MSFT|AMZN|BTC/USD|ETH/USD|SOL/USD|BNB/USD|ADA/USD|EUR/USD|GBP/USD|USD/JPY|AUD/USD|USD/CHF|GOLD|SILVER|OIL|NATGAS|SP500|NASDAQ|DOWJ|FTSE|NIKKEI|back_button)$"))
+    app.add_handler(CallbackQueryHandler(asset_type_callback, pattern="^(bulk_button|single_button|back_button)$"))
+    app.add_handler(CallbackQueryHandler(ticker_callback, pattern="^(commodities|crypto|forex|indices|stocks|stock_|crypto_|forex_|commodity_|index_|back_to_asset_type)$"))
+    app.add_handler(CallbackQueryHandler(interval_callback, pattern="^interval_.*|back_to_period$"))
+    app.add_handler(CallbackQueryHandler(period_callback, pattern="^period_.*|back_to_asset_type$"))
+    app.add_handler(CallbackQueryHandler(signal_callback, pattern="^generate_signal$"))

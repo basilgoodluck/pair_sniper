@@ -3,7 +3,8 @@ from telegram.ext import ContextTypes
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from keyboards import generate_keyboard, get_back_keyboard, get_interval_keyboard
+from keyboards import get_period_keyboard, get_asset_type_keyboard
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 async def period_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -20,15 +21,20 @@ async def period_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     }
 
     valid_periods = period_options.get(interval, ["30d", "6mo", "1y"])
-    if query.data in valid_periods:
-        context.user_data["state"] = "select_period"
-        context.user_data["period"] = query.data
+    if query.data.startswith("period_"):
+        period = query.data.replace("period_", "")
+        if period in valid_periods:
+            context.user_data["state"] = "generate_signal"
+            context.user_data["period"] = period
+            await query.edit_message_text(
+                f"🤖 Selected period: {period} for interval {interval}\nGenerate signal now?",
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("Generate Signal", callback_data="generate_signal")],
+                    [InlineKeyboardButton("🔙 Go back", callback_data="back_to_period")]
+                ])
+            )
+    elif query.data == "back_to_asset_type":
+        context.user_data["state"] = "select_asset_type"
         await query.edit_message_text(
-            f"🤖 Choose a period for {interval}:",
-            reply_markup=generate_keyboard(valid_periods + ["🔙 Go back"])
-        )
-    elif query.data == "back_button":
-        context.user_data["state"] = "select_interval"
-        await query.edit_message_text(
-            "🤖 Choose an interval:", reply_markup=get_interval_keyboard()
+            "🤖 Choose an asset type:", reply_markup=get_asset_type_keyboard()
         )
