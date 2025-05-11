@@ -4,11 +4,12 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from bot.keyboards import get_main_keyboard
+from bot.handlers.analysis_type import analysis_type_callback
+from bot.handlers.ticker import ticker_callback
+from bot.handlers.interval import interval_callback
+from bot.handlers.period import period_callback
+from bot.handlers.analysis import signal_callback
 from bot.handlers.asset_type import asset_type_callback
-from bot.handlers.ticker_callback import ticker_callback
-from bot.handlers.interval_callback import interval_callback
-from bot.handlers.period_callback import period_callback
-from bot.handlers.signal_callback import signal_callback
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["state"] = "start"
@@ -19,8 +20,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def register_handlers(app):
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(asset_type_callback, pattern="^(bulk_button|single_button|back_button)$"))
-    app.add_handler(CallbackQueryHandler(ticker_callback, pattern="^(commodities|crypto|forex|indices|stocks|stock_|crypto_|forex_|commodity_|index_|back_to_asset_type)$"))
+    app.add_handler(CallbackQueryHandler(analysis_type_callback, pattern="^(bulk_button|single_button|back_button)$"))
+    app.add_handler(CallbackQueryHandler(asset_type_callback, pattern="^(commodities|crypto|forex|indices|stocks|back_to_asset_type)$"))
+    app.add_handler(CallbackQueryHandler(ticker_callback, pattern="^(stock.*|crypto.*|forex.*|commodity.*|index.*|back_to_asset_type)$"))
     app.add_handler(CallbackQueryHandler(interval_callback, pattern="^interval_.*|back_to_period$"))
     app.add_handler(CallbackQueryHandler(period_callback, pattern="^period_.*|back_to_asset_type$"))
     app.add_handler(CallbackQueryHandler(signal_callback, pattern="^generate_signal$"))

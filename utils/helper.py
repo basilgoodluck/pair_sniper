@@ -1,9 +1,8 @@
-import datetime
+from datetime import datetime
 import io
 import sys
 import os
 import matplotlib.pyplot as plt
-from telegram import InlineKeyboardButton
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 def plot_signals(df):
@@ -26,5 +25,3 @@ def plot_signals(df):
     plt.close()
     return buf
 
-def generate_keyboard(options):
-    return [[InlineKeyboardButton(option, callback_data=option) for option in options]]

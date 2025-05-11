@@ -12,7 +12,7 @@ async def signal_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     query = update.callback_query
     await query.answer()
 
-    ticker = context.user_data.get("ticker")  # e.g., stock_aapl, crypto_btc_usd
+    ticker = context.user_data.get("ticker")  
     asset_type = context.user_data.get("asset_type")
     period = context.user_data.get("period")
     interval = context.user_data.get("interval")
