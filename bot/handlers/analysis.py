@@ -6,7 +6,8 @@ from telegram.ext import ContextTypes
 from core.data import generate_rsi_signal, generate_macd_signal, generate_obv_signal, generate_combined_signal
 from core.signal_engine import YahooFinanceDataProvider, BinanceDataProvider, RSIIndicator, MACDIndicator, OBVIndicator, DynamicSignalGenerator
 from keyboards import get_back_keyboard, get_period_keyboard
-from utils.helper import plot_signals
+from PIL import Image, ImageDraw, ImageFont
+from io import BytesIO
 
 async def signal_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -77,14 +78,42 @@ async def signal_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             signal_generator = DynamicSignalGenerator(config)
             df = signal_generator.generate_signals(market_data, indicators, symbol, asset_type)
 
-            plot_buf = plot_signals(df.tail(50))
+            latest_signal = df.iloc[-1]
+            direction = "Buy" if latest_signal['Signal'] == 1 else "Sell" if latest_signal['Signal'] == -1 else "Hold"
+            entry_point = latest_signal['Close'] if latest_signal['Signal'] != 0 else None
+            exit_point = latest_signal['Exit_Price'] if latest_signal['Signal'] != 0 else None
+            confidence = min(latest_signal['Confidence'] * 100, 100) 
+
+            img = Image.new('RGB', (400, 200), color=(0, 0, 0))
+            d = ImageDraw.Draw(img)
+            try:
+                font = ImageFont.load_default()
+            except:
+                font = ImageFont.load_default()
+            entry_text = f"${entry_point:.2f}" if entry_point is not None else "N/A"
+            exit_text = f"${exit_point:.2f}" if exit_point is not None else "N/A"
+            text = (
+                f"Signal Report\n"
+                f"Ticker: {ticker}\n"
+                f"Asset Type: {asset_type}\n"
+                f"Period: {period}\n"
+                f"Interval: {interval}\n"
+                f"Direction: {direction}\n"
+                f"Entry Point: {entry_text}\n"
+                f"Exit Point: {exit_text}\n"
+                f"Confidence: {confidence:.1f}%"
+            )
+            d.multiline_text((10, 10), text, fill=(255, 255, 255), font=font)
+            buf = BytesIO()
+            img.save(buf, format='PNG')
+            buf.seek(0)
+
             await query.message.reply_photo(
-                photo=plot_buf,
-                caption=f"📈 Latest Signal for {ticker} ({asset_type}, {period}, {interval}):\n{signal_data['signal']}",
-                reply_markup=get_back_keyboard()
+                photo=buf,
+                caption="📊 Signal Generated",
             )
             await query.delete_message()
-            plot_buf.close()
+            buf.close()
         except Exception as e:
             await query.edit_message_text(
                 f"❌ Error generating signal: {str(e)}",
