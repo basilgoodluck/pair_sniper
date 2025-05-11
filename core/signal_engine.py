@@ -149,4 +149,4 @@ class DynamicSignalGenerator(SignalGenerator):
 
         df['Confidence'] = df['Confidence'].clip(0, 1)
         df['Ticker'] = symbol
-        return df[['Signal', 'Confidence', 'Ticker', 'RSI', 'MACD', 'MACD_Signal', 'OBV', 'Close']].iloc[-1:]
+        return df[['Signal', 'Confidence', 'Ticker', 'RSI', 'MACD', 'MACD_Signal', 'OBV', 'Close']].iloc[-10:]
