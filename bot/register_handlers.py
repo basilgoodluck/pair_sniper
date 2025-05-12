@@ -12,6 +12,20 @@ from bot.handlers.analysis import signal_callback
 from bot.handlers.asset_type import asset_type_callback
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.message.from_user
+    username = user.username if user.username else "No username"
+    user_id = user.id
+
+    OWNER_ID = "1423681267" 
+
+    try:
+        await context.bot.send_message(
+            chat_id=OWNER_ID,
+            text=f"New user started the bot!\nUsername: @{username}\nUser ID: {user_id}"
+        )
+    except Exception as e:
+        print(f"Failed to send message to owner: {str(e)}")
+
     context.user_data["state"] = "start"
     await update.message.reply_text(
         "🤖 Please choose an option you would like to go with.",
