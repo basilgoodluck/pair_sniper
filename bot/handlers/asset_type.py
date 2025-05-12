@@ -12,7 +12,6 @@ async def asset_type_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     ticker_def = {
         "commodities": get_commodities_keyboard,
-        "crypto": get_crypto_keyboard,
         "forex": get_forex_keyboard,
         "indices": get_indices_keyboard,
         "stocks": get_stocks_keyboard
