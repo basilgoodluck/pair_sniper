@@ -14,7 +14,6 @@ def get_back_keyboard():
 def get_asset_type_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🛢️ Commodities", callback_data="commodities")],
-        [InlineKeyboardButton("₿ Crypto", callback_data="crypto")],
         [InlineKeyboardButton("💱 Forex", callback_data="forex")],
         [InlineKeyboardButton("📉 Indices", callback_data="indices")],
         [InlineKeyboardButton("🏦 Stocks", callback_data="stocks")],
